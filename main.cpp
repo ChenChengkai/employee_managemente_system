@@ -1,4 +1,7 @@
 #include "workerManager.h"
+#include "employee.h"
+#include "manager.h"
+#include "boss.h"
 
 int main(int argc, char const *argv[])
 {

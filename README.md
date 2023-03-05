@@ -9,12 +9,20 @@
   - [5.1提供功能接口](#51提供功能接口)
   - [5.2添加退出功能](#52添加退出功能)
   - [5.3退出功能测试](#53退出功能测试)
+- [6.增加新职工](#6增加新职工)
+  - [6.1创建职工抽象类](#61创建职工抽象类)
+  - [6.2创建普通员工类](#62创建普通员工类)
+  - [6.3创建经理类](#63创建经理类)
+  - [6.4创建老板类](#64创建老板类)
+  - [6.5测试多态](#65测试多态)
 
 
 # 1.职工管理系统的C++实现介绍
 
 &emsp;&emsp;这是根据b站的[黑马程序员](https://www.bilibili.com/video/BV1et411b73Z?p=147&vd_source=a47e14fad0ef244c0f37adf4f02401d0)视频学习的职工管理系统的项目，主要用来学习多态的相关知识。
+
 &emsp;&emsp;职工管理系统可以用来管理公司内所有成员的信息，本教程主要利用C++来实现一个基于多态的职工管理系统。
+
 &emsp;&emsp;公司中职工分为三类：普通员工、经理、老板，显示信息时，需要显示职工编号、职工姓名、职工岗位、以及职责。
 
 - 普通员工职责：完成经理交给的任务；
@@ -215,3 +223,205 @@ void WorkerManager::clear_window()
 
 ## 5.3退出功能测试
 ![Image text](./pic/5_3_1_退出功能测试.png)
+
+# 6.增加新职工
+## 6.1创建职工抽象类
+&emsp;&emsp;职工的分类为普通员工、经理、老板，将三种职工抽象到一个`worker`类,利用多态管理不同职工类型；
+
+&emsp;&emsp;职工属性分为：职工编号、职工姓名、职工所在部门编号。
+
+&emsp;&emsp;职工的行为为：岗位职责描述，获取岗位名称；
+
+&emsp;&emsp;首先在`include`文件夹中创建`worker.h`文件，并创建`Worker`类:
+
+```cpp
+#pragma once
+#include <iostream>
+
+// Worker是一个抽象类
+class Worker
+{
+public:
+    // 显示个人信息
+    virtual void showInfo() = 0; // 纯虚函数，在基类中不做任何实现
+    // 获取岗位名称
+    virtual std::string getDeptName() = 0; // 纯虚函数，不做任何实现
+    int m_Id;                              // 职工编号
+    std::string m_Name;                    // 职工姓名
+    int m_DeptId;                          // 职工所在部门名称编号
+};
+```
+
+&emsp;&emsp;这里是建立了一个抽象类，里面有两个纯虚函数，在基类中不做实现，在派生类（子类）中必须去实现。这些公共的行为和属性，可以在基类中定义好。
+
+## 6.2创建普通员工类
+
+&emsp;&emsp;首先在`include`文件夹中创建`employee.h`文件，在`src`文件夹创建`employee.cpp`源文件。定义并实现`Employee`类，其需要公有继承`Worker`类，并实现其中的虚函数。
+`employee.h`文件：
+```cpp
+#pragma once
+#include <iostream>
+#include "worker.h"
+
+class Employee : public Worker
+{
+private:
+    /* data */
+public:
+    Employee(int id, std::string name, int dId);
+    // 显示个人信息
+    virtual void showInfo();
+    // 获取岗位名称
+    virtual std::string getDeptName();
+};
+```
+`employee.cpp`文件：
+```cpp
+#include "employee.h"
+
+// 构造函数
+Employee::Employee(int id, std::string name, int dId)
+{
+    this->m_Id = id;
+    this->m_Name = name;
+    this->m_DeptId = dId;
+}
+
+// 显示个人信息
+void Employee::showInfo()
+{
+    std::cout << "职工编号：" << this->m_Id
+              << "\t职工姓名：" << this->m_Name
+              << "\t部门编号：" << this->m_DeptId
+              << "\t岗位名称：" << this->getDeptName()
+              << "\t岗位职责：完成经理交给的任务" << std::endl;
+}
+// 获取岗位名称
+std::string Employee::getDeptName()
+{
+    return std::string("员工");
+}
+```
+
+## 6.3创建经理类
+
+&emsp;&emsp;首先在`include`文件夹中创建`manager.h`文件，在`src`文件夹创建`manager.cpp`源文件。定义并实现`Manager`类，其需要公有继承`Worker`类，并实现其中的虚函数。
+`manager.h`文件：
+```cpp
+#pragma once
+#include <iostream>
+#include "worker.h"
+
+class Manager : public Worker
+{
+private:
+    /* data */
+public:
+    Manager(int id, std::string name, int dId);
+    // 显示个人信息
+    virtual void showInfo();
+    // 获取岗位名称
+    virtual std::string getDeptName();
+};
+```
+
+`manager.cpp`文件：
+```cpp
+#include "manager.h"
+
+// 构造函数
+Manager::Manager(int id, std::string name, int dId)
+{
+    this->m_Id = id;
+    this->m_Name = name;
+    this->m_DeptId = dId;
+}
+
+// 显示个人信息
+void Manager::showInfo()
+{
+    std::cout << "职工编号：" << this->m_Id
+              << "\t职工姓名：" << this->m_Name
+              << "\t部门编号：" << this->m_DeptId
+              << "\t岗位名称：" << this->getDeptName()
+              << "\t岗位职责：完成老板交给的任务" << std::endl;
+}
+// 获取岗位名称
+std::string Manager::getDeptName()
+{
+    return std::string("经理");
+}
+```
+
+## 6.4创建老板类
+
+&emsp;&emsp;首先在`include`文件夹中创建`boss.h`文件，在`src`文件夹创建`boss.cpp`源文件。定义并实现`Boss`类，其需要公有继承`Worker`类，并实现其中的虚函数。
+`boss.h`文件：
+```cpp
+#pragma once
+#include <iostream>
+#include "worker.h"
+
+class Boss : public Worker
+{
+private:
+    /* data */
+public:
+    Boss(int id, std::string name, int dId);
+    // 显示个人信息
+    virtual void showInfo();
+    // 获取岗位名称
+    virtual std::string getDeptName();
+};
+```
+
+`boss.cpp`文件：
+
+```cpp
+#include "boss.h"
+
+// 构造函数
+Boss::Boss(int id, std::string name, int dId)
+{
+    this->m_Id = id;
+    this->m_Name = name;
+    this->m_DeptId = dId;
+}
+
+// 显示个人信息
+void Boss::showInfo()
+{
+    std::cout << "职工编号：" << this->m_Id
+              << "\t职工姓名：" << this->m_Name
+              << "\t部门编号：" << this->m_DeptId
+              << "\t岗位名称：" << this->getDeptName()
+              << "\t岗位职责：给经理安排任务" << std::endl;
+}
+// 获取岗位名称
+std::string Boss::getDeptName()
+{
+    return std::string("老板");
+}
+```
+
+## 6.5测试多态
+
+&emsp;&emsp;测试多态代码是否正确，如下：
+
+```cpp
+    Worker *worker = NULL;
+    worker = new Boss(1, "刘备", 3);
+    worker->showInfo();
+    delete worker;
+
+    worker = new Manager(2, "关羽", 2);
+    worker->showInfo();
+    delete worker;
+
+    worker = new Employee(3, "张飞", 1);
+    worker->showInfo();
+    delete worker;
+```
+
+输出结果如下：
+![Image test](./pic/6_5_1_%E5%A4%9A%E6%80%81%E6%B5%8B%E8%AF%95%E7%BB%93%E6%9E%9C.png)
