@@ -36,6 +36,19 @@
   - [11.2职工是否存在函数声明](#112职工是否存在函数声明)
   - [11.3删除职工函数](#113删除职工函数)
   - [11.4删除职工测试](#114删除职工测试)
+- [12.修改职工信息](#12修改职工信息)
+- [13.查找职工](#13查找职工)
+  - [13.1 查找职工函数声明](#131-查找职工函数声明)
+  - [13.2 查找职工函数实现](#132-查找职工函数实现)
+  - [13.3 查找职工函数测试](#133-查找职工函数测试)
+- [14.职工信息排序](#14职工信息排序)
+  - [14.1 查找排序函数声明](#141-查找排序函数声明)
+  - [14.2 查找排序函数实现](#142-查找排序函数实现)
+  - [14.3 查找排序函数测试](#143-查找排序函数测试)
+- [15.清空文档](#15清空文档)
+  - [15.1 清空函数声明](#151-清空函数声明)
+  - [15.2 清空函数实现](#152-清空函数实现)
+  - [15.3 清空函数测试](#153-清空函数测试)
 
 
 # 1.职工管理系统的C++实现介绍
@@ -808,7 +821,8 @@ int WorkerManager::IsExist(int id)
 }
 ```
 ## 11.3删除职工函数
-在`workerManager.cpp`中添加函数实现`void Del_Emp()`;
+
+&emsp;&emsp;在`workerManager.cpp`中添加函数实现`void Del_Emp()`;
 
 ```cpp
 void WorkerManager::Del_Emp()
@@ -844,3 +858,265 @@ void WorkerManager::Del_Emp()
 
 ## 11.4删除职工测试
 ![Image text](./pic/11_4_1_%E5%88%A0%E9%99%A4%E8%81%8C%E5%B7%A5%E6%B5%8B%E8%AF%95.png)
+
+# 12.修改职工信息
+
+&emsp;&emsp;在`workerManager.cpp`中实现成员函数`void Mod_Emp()`;
+
+```cpp
+void WorkerManager::Mod_Emp()
+{
+    if (!this->m_FileIsEmpty)
+    {
+        std::cout << "请输入要修改的员工编号：" << std::endl;
+        int mod_id = -1;
+        std::cin >> mod_id;
+        int ret = this->IsExist(mod_id);
+        if (ret != -1)
+        {
+            for (int i = 0; i < this->m_EmpNum; i++)
+            {
+                if (this->m_EmpArray[i]->m_Id == mod_id)
+                {
+                    delete this->m_EmpArray[i];
+                    int id;
+                    std::string name;
+                    int dId;
+                    std::cout << "请输入新的职工编号：" << std::endl;
+                    std::cin >> id;
+                    std::cout << "请输入新的职工姓名：" << std::endl;
+                    std::cin >> name;
+                    std::cout << "请输入新的职工岗位：" << std::endl;
+                    std::cout << "1.员工" << std::endl;
+                    std::cout << "2.经理" << std::endl;
+                    std::cout << "3.老板" << std::endl;
+                    std::cin >> dId;
+                    switch (dId)
+                    {
+                    case 1:
+                        this->m_EmpArray[i] = new Employee(id, name, dId);
+                        break;
+                    case 2:
+                        this->m_EmpArray[i] = new Manager(id, name, dId);
+                        break;
+                    case 3:
+                        this->m_EmpArray[i] = new Boss(id, name, dId);
+                        break;
+                    default:
+                        break;
+                    }
+                    break;
+                }
+            }
+            std::cout << "修改完毕！" << std::endl;
+            this->save();
+        }
+        else
+        {
+            std::cout << "待修改的员工不存在！" << std::endl;
+        }
+    }
+    else
+    {
+        std::cout << "文件不存在或文件为空！" << std::endl;
+    }
+    this->clear_window();
+}
+```
+测试结果如下：
+![Image test](./pic/12_1_1_%E4%BF%AE%E6%94%B9%E8%81%8C%E5%B7%A5%E4%BF%A1%E6%81%AF%E6%B5%8B%E8%AF%95.png)
+
+# 13.查找职工
+
+功能描述：按照编号查找和按照姓名查找。
+## 13.1 查找职工函数声明
+
+&emsp;&emsp;在`workerManager.h`中添加成员函数： `void Find_Emp()`;
+
+## 13.2 查找职工函数实现
+```cpp
+void WorkerManager::Find_Emp()
+{
+    if (!this->m_FileIsEmpty)
+    {
+        int find_mode = -1;
+        std::cout << "请选择按那种方式查找：" << std::endl;
+        std::cout << "1.按编号查找" << std::endl;
+        std::cout << "2.按姓名查找" << std::endl;
+        std::cin >> find_mode;
+        if (find_mode == 1)
+        {
+            int id = -1;
+            std::cout << "请输入要查找的编号：" << std::endl;
+            std::cin >> id;
+            int ret = this->IsExist(id);
+            if (ret != -1)
+            {
+                std::cout << "查找成功！职工信息如下：" << std::endl;
+                this->m_EmpArray[ret]->showInfo();
+            }
+            else
+            {
+                std::cout << "查无此人！" << std::endl;
+            }
+        }
+        else
+        {
+            std::string name;
+            std::cout << "请输入要查找的姓名：" << std::endl;
+            std::cin >> name;
+            bool find_flag = false;
+            for (int i = 0; i < this->m_EmpNum; i++)
+            {
+                if (this->m_EmpArray[i]->m_Name == name)
+                {
+                    std::cout << "查找成功！职工信息：";
+                    this->m_EmpArray[i]->showInfo();
+                    find_flag = true;
+                }
+            }
+            if (!find_flag)
+            {
+                std::cout << "查无此人！" << std::endl;
+            }
+        }
+    }
+    else
+    {
+        std::cout << "文件不存在或文件为空！" << std::endl;
+    }
+    this->clear_window();
+}
+```
+## 13.3 查找职工函数测试
+
+按照编号查找职工，查找成功！
+![Image test](./pic/13_3_1_%E6%8C%89%E7%BC%96%E5%8F%B7%E6%9F%A5%E6%89%BE%E5%91%98%E5%B7%A5_%E6%9F%A5%E6%89%BE%E6%88%90%E5%8A%9F.png)
+
+按照编号查找职工，查无此人。
+![Image test](./pic/13_3_2_%E6%8C%89%E7%BC%96%E5%8F%B7%E6%9F%A5%E6%89%BE%E5%91%98%E5%B7%A5_%E6%9F%A5%E6%97%A0%E6%AD%A4%E4%BA%BA.png)
+
+按照姓名查找职工，查找成功！
+![Image test](./pic/13_3_3_%E6%8C%89%E5%A7%93%E5%90%8D%E6%9F%A5%E6%89%BE%E5%91%98%E5%B7%A5_%E6%9F%A5%E6%89%BE%E6%88%90%E5%8A%9F.png)
+
+按照姓名查找职工，查无此人！
+![Image test](./pic/13_3_4_%E6%8C%89%E5%A7%93%E5%90%8D%E6%9F%A5%E6%89%BE%E8%81%8C%E5%B7%A5_%E6%9F%A5%E6%97%A0%E6%AD%A4%E4%BA%BA.png)
+
+
+# 14.职工信息排序
+功能描述：按照职工编号进行排序，排序的顺序由用户指定！
+
+## 14.1 查找排序函数声明
+
+&emsp;&emsp;在`workerManager.h`中添加成员函数： `void Sort_Emp()`;
+
+## 14.2 查找排序函数实现
+
+```cpp
+void WorkerManager::Sort_Emp()
+{
+    if (!this->m_FileIsEmpty)
+    {
+        int sort_mode = -1;
+        std::cout << "请输入排序的顺序：" << std::endl;
+        std::cout << "1.顺序" << std::endl;
+        std::cout << "2.逆序" << std::endl;
+        std::cin >> sort_mode;
+        if (sort_mode == 1) // 顺序
+        {
+            for (int i = 0; i < this->m_EmpNum; i++)
+            {
+                for (int j = i; j < this->m_EmpNum; j++)
+                {
+                    if (this->m_EmpArray[i]->m_Id > this->m_EmpArray[j]->m_Id)
+                    {
+                        Worker *worker = this->m_EmpArray[i];
+                        this->m_EmpArray[i] = this->m_EmpArray[j];
+                        this->m_EmpArray[j] = worker;
+                    }
+                }
+            }
+        }
+        else if (sort_mode == 2)
+        {
+            for (int i = 0; i < this->m_EmpNum; i++)
+            {
+                for (int j = i; j < this->m_EmpNum; j++)
+                {
+                    if (this->m_EmpArray[i]->m_Id < this->m_EmpArray[j]->m_Id)
+                    {
+                        Worker *worker = this->m_EmpArray[i];
+                        this->m_EmpArray[i] = this->m_EmpArray[j];
+                        this->m_EmpArray[j] = worker;
+                    }
+                }
+            }
+        }
+        else
+        {
+            std::cout << "输入的顺序有误！" << std::endl;
+            this->clear_window();
+            return;
+        }
+        std::cout << "排序成功！" << std::endl;
+    }
+    else
+    {
+        std::cout << "文件存在或文件为空！" << std::endl;
+    }
+    this->save();
+    this->Show_Emp();
+}
+```
+
+## 14.3 查找排序函数测试
+
+顺序排序：
+![Image test](./pic/14_3_1_%E6%8E%92%E5%BA%8F%E5%AE%9E%E7%8E%B0_%E9%A1%BA%E5%BA%8F.png)
+
+排序逆序：
+![Image test](./pic/14_3_2_%E6%8E%92%E5%BA%8F%E5%AE%9E%E7%8E%B0_%E9%80%86%E5%BA%8F.png)
+
+
+# 15.清空文档
+## 15.1 清空函数声明
+
+&emsp;&emsp;在`workerManager.h`中添加成员函数`void Clean_File()`;
+
+
+## 15.2 清空函数实现
+```cpp
+void WorkerManager::Clean_File()
+{
+    int clean_flag = -1;
+    std::cout << "确定清空？" << std::endl;
+    std::cout << "1.确定" << std::endl;
+    std::cout << "2.返回" << std::endl;
+    std::cin >> clean_flag;
+    if (clean_flag == 1)
+    {
+        // 清空文件
+        std::ofstream ofs(FILENAME, std::ios::trunc); // 删除文件后创建
+        ofs.close();
+        if (this->m_EmpArray != NULL)
+        {
+            // 删除堆区的每个职工对象
+            for (int i = 0; i < this->m_EmpNum; i++)
+            {
+                delete this->m_EmpArray[i];
+                this->m_EmpArray[i] = NULL;
+            }
+            // 删除堆区数组指针
+            delete[] this->m_EmpArray;
+            this->m_EmpArray = NULL;
+            this->m_FileIsEmpty = true;
+            this->m_EmpNum = 0;
+        }
+        std::cout << "清空完成！" << std::endl;
+    }
+    this->clear_window();
+}
+```
+
+## 15.3 清空函数测试
+![Image test](./pic/15_3_1_%E6%B8%85%E7%A9%BA%E6%96%87%E4%BB%B6%E5%87%BD%E6%95%B0%E6%B5%8B%E8%AF%95.png)

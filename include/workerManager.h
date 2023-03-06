@@ -31,6 +31,14 @@ public:
     void Del_Emp();
     // 职工是否存在
     int IsExist(int id);
+    // 修改职工
+    void Mod_Emp();
+    // 查找职工
+    void Find_Emp();
+    // 职工排序
+    void Sort_Emp();
+    // 清空文档
+    void Clean_File();
     // 记录职工人数
     int m_EmpNum;
     // 职工数组指针
