@@ -15,6 +15,26 @@
   - [6.3创建经理类](#63创建经理类)
   - [6.4创建老板类](#64创建老板类)
   - [6.5测试多态](#65测试多态)
+- [7.添加职工](#7添加职工)
+  - [7.1功能分析](#71功能分析)
+  - [7.2功能实现](#72功能实现)
+- [8.文件交互-写功能](#8文件交互-写功能)
+- [8.1设定文件路径](#81设定文件路径)
+- [8.2成员函数声明](#82成员函数声明)
+- [8.3写文件测试](#83写文件测试)
+- [9.文件交互-读功能](#9文件交互-读功能)
+  - [9.1文件未创建](#91文件未创建)
+  - [9.2文件存在但是为空](#92文件存在但是为空)
+  - [9.3文件存在且不为空](#93文件存在且不为空)
+    - [9.3.1获取职工人数](#931获取职工人数)
+    - [9.3.2初始化数组](#932初始化数组)
+- [10.显示职工所有信息](#10显示职工所有信息)
+  - [10.1 显示职工函数声明](#101-显示职工函数声明)
+- [11.删除职工](#11删除职工)
+- [11.1删除职工函数声明](#111删除职工函数声明)
+- [11.2职工是否存在函数声明](#112职工是否存在函数声明)
+- [11.3删除职工函数](#113删除职工函数)
+- [11.4删除职工测试](#114删除职工测试)
 
 
 # 1.职工管理系统的C++实现介绍
@@ -425,3 +445,401 @@ std::string Boss::getDeptName()
 
 输出结果如下：
 ![Image test](./pic/6_5_1_%E5%A4%9A%E6%80%81%E6%B5%8B%E8%AF%95%E7%BB%93%E6%9E%9C.png)
+
+# 7.添加职工
+功能描述：批量添加新职工。
+## 7.1功能分析
+&emsp;&emsp;用户批量创建时候，可能会创建不同类型的职工，如果想将所有不同类型的职工都放到一个数组中，可以将所有职工的指针维护到一起，放在一个数组当中。如果想在程序中维护这个不定长度的数组，可以将数组创建到堆区，并利用Worker** 的指针维护。
+![Image test](./pic/7_1_1_%E4%B8%8D%E5%90%8C%E7%B1%BB%E5%9E%8B%E7%9A%84%E8%81%8C%E5%B7%A5%E6%94%BE%E5%88%B0%E5%90%8C%E4%B8%80%E6%95%B0%E7%BB%84%E4%B8%AD%E7%BB%B4%E6%8A%A4.png)
+
+&emsp;&emsp;在`WorkerManager`中声明添加职工的函数`Add_Emp`，记录职工人数的变量`m_EmpNum`和记录职工信息的数组`m_EmpArray`。
+
+```cpp
+// 添加职工
+void Add_Emp();
+// 记录职工人数
+int m_EmpNum;
+// 职工数组指针
+Worker **m_EmpArray;
+```
+在`WorkerManager.cpp`源文件中实现代码：
+```cpp
+void WorkerManager::Add_Emp()
+{
+    int addNum = 0;
+    std::cout << "请输入要添加的职工人数：" << std::endl;
+    std::cin >> addNum;
+
+    if (addNum > 0)
+    {
+        // 记录更新后的空间大小
+        int newNum = this->m_EmpNum + addNum;
+        std::cout << newNum << std::endl;
+        // 开辟新空间
+        Worker **newSpace = new Worker *[newNum];
+        // 将原先空间的数据先放进来
+        if (this->m_EmpArray != NULL)
+        {
+            for (int i = 0; i < m_EmpNum; i++)
+            {
+                newSpace[i] = this->m_EmpArray[i];
+            }
+        }
+
+        // 添加新的数据
+        for (int i = 0; i < addNum; i++)
+        {
+            int id;           // 职工编号
+            std::string name; // 职工姓名
+            int did;          // 部门编号
+            std::cout << "请输入第" << i + 1 << "个职工的编号：" << std::endl;
+            std::cin >> id;
+            std::cout << "请输入第" << i + 1 << "个职工的姓名：" << std::endl;
+            std::cin >> name;
+            std::cout << "请输入第" << i + 1 << "个职工的部门编号：" << std::endl;
+            std::cout << "1.员工" << std::endl;
+            std::cout << "2.经理" << std::endl;
+            std::cout << "3.老板" << std::endl;
+            std::cin >> did;
+            Worker *worker = NULL;
+            switch (did)
+            {
+            case 1:
+                worker = new Employee(id, name, did);
+                break;
+            case 2:
+                worker = new Manager(id, name, did);
+                break;
+            case 3:
+                worker = new Boss(id, name, did);
+                break;
+            default:
+            {
+                std::cout << "输入的部门有误！" << std::endl;
+                this->clear_window();
+                return;
+            }
+            }
+            newSpace[this->m_EmpNum + i] = worker;
+        }
+        // 删除原有空间
+        delete[] this->m_EmpArray;
+        // 更新新的空间
+        this->m_EmpArray = newSpace;
+        // 更新职工人数
+        this->m_EmpNum = newNum;
+        std::cout << "成功添加" << addNum << "名新职工!" << std::endl;
+    }
+    else
+    {
+        std::cout << "输入人数无效！" << std::endl;
+        this->clear_window();
+    }
+    this->clear_window();
+}
+```
+
+## 7.2功能实现
+&emsp;&emsp;在`main.cpp`中添加该函数如下：
+```cpp
+    case 1: // 添加职工
+        wm.Add_Emp();
+```
+
+还需要在构造函数中对某些变量进行初始化，不然会报错：
+```cpp
+// 构造函数
+WorkerManager::WorkerManager()
+{
+    this->m_EmpNum = 0;
+    this->m_EmpArray = NULL;
+}
+```
+
+最终效果如下：
+![Image text](./pic/7_2_1_%E6%B7%BB%E5%8A%A0%E8%81%8C%E5%B7%A5%E5%8A%9F%E8%83%BD%E5%AE%9E%E7%8E%B0.png)
+
+# 8.文件交互-写功能
+功能描述：对文件进行写操作。
+
+&emsp;&emsp;在上一个添加职工的功能中，我们只是将所有数据添加到了内存中，一旦程序结束就无法保存了。因此文件管理类需要一个与文件进行交互的功能，对文件进行读写。
+
+# 8.1设定文件路径
+&emsp;&emsp;将文件路径在`workerManager.h`中添加宏变量，并且包含头文件`fstream`:
+
+```cpp
+#include <fstream>
+#define FILENAME "../empFile.txt"
+```
+# 8.2成员函数声明
+在`workerManager.h`中添加成员函数`void save()`;
+```cpp
+    // 保存信息
+    void save();
+```
+
+在`workerManager.cpp`中添加函数实现`void save()`;
+```cpp
+void WorkerManager::save()
+{
+    std::ofstream ofs(FILENAME, std::ios::out);
+    for (int i = 0; i < this->m_EmpNum; i++)
+    {
+        ofs << this->m_EmpArray[i]->m_Id << " "
+            << m_EmpArray[i]->m_Name << " "
+            << m_EmpArray[i]->m_DeptId << std::endl;
+    }
+    ofs.close();
+}
+```
+
+# 8.3写文件测试
+
+&emsp;&emsp;在合适的地方调用即可：`save()`
+
+# 9.文件交互-读功能
+
+&emsp;&emsp;将文件中的内容读取到程序中。虽然我们实现了添加职工后保存文件的需求，但是每次开始运行程序，并没有将文件中的数据读取到程序中，而我们的程序功能中还有清空文件的需求。因此构造函数初始化数据分为三种：
+
+- 第一次使用，程序未创建；
+- 文件存在，但是数据被用户清空；
+- 文件存在，并保存职工的所有数据；
+## 9.1文件未创建
+
+&emsp;&emsp;在`workerManager.h`中添加新的成员属性m_FileEmpty标志文件是否为空：
+```cpp
+    // 标志文件是否为空
+    bool m_FileIsEmpty;
+```
+&emsp;&emsp;在`workerManager.cpp`中修改构造函数，添加文件不存在的情况：
+```cpp
+// 构造函数
+WorkerManager::WorkerManager()
+{
+
+    // 第一种情况，文件不存在
+    std::ifstream ifs;
+    ifs.open(FILENAME, std::ios::in);
+    if (!ifs.is_open())
+    {
+        std::cout << "文件不存在！" << std::endl;
+        this->m_EmpNum = 0;
+        this->m_EmpArray = NULL;
+        this->m_FileIsEmpty = true;
+        return;
+    }
+}
+```
+![Image text](./pic/9_1_1_文件不存在的情况.png)
+
+## 9.2文件存在但是为空
+&emsp;&emsp;判断文件为空的方式是读取一个字符，然后检测是否读到文件尾(eof)。在`workerManager.cpp`中的构造函数追加代码：
+```cpp
+    // 第二种情况，文件存在但是为空
+    char ch;
+    ifs >> ch;
+    if (ifs.eof())
+    {
+        std::cout << "文件为空！" << std::endl;
+        this->m_EmpNum = 0;
+        this->m_EmpArray = NULL;
+        this->m_FileIsEmpty = true;
+        return;
+    }
+```
+![Image text](./pic/9_2_1_文件存在但是为空.png)
+
+在每次添加职工后，注意要更新职工人数不为空：
+```cpp
+    // 更新职工人数不为空
+    this->m_FileIsEmpty = false;
+```
+
+## 9.3文件存在且不为空
+
+&emsp;&emsp;主要分为两步:①获取职工人数②初始化职工信息数组；
+### 9.3.1获取职工人数
+
+&emsp;&emsp;添加get_EmpNum()函数：
+```cpp
+    // 获取职工人数
+    int get_EmpNum();
+```
+
+```cpp
+int WorkerManager::get_EmpNum()
+{
+    std::ifstream ifs(FILENAME, std::ios::in);
+    int id;
+    std::string name;
+    int dId;
+
+    int num = 0;
+    while (ifs >> id && ifs >> name && ifs >> dId)
+    {
+        num++;
+    }
+    return num;
+}
+```
+
+在构造函数中继续追加：
+
+```cpp
+    // 第三种情况，文件存在，且有数据记录
+    int num = this->get_EmpNum();
+    std::cout << "职工人数为：" << num << std::endl;
+```
+
+### 9.3.2初始化数组
+&emsp;&emsp;根据职工的数据，初始化`workerManager`中的Worker** m_EmpArray指针，在`workerManager.h`中添加成员函数`void init_Emp()`;
+```cpp
+//初始化员工
+void init_Emp();
+```
+
+```cpp
+void WorkerManager::init_Emp()
+{
+    std::ifstream ifs(FILENAME, std::ios::in);
+    int id;           // 员工id
+    std::string name; // 员工姓名
+    int dId;          // 部门号
+    int index = 0;
+    while (ifs >> id && ifs >> name && ifs >> dId)
+    {
+        Worker *worker = NULL;
+        switch (dId)
+        {
+        case 1:
+            worker = new Employee(id, name, dId);
+            break;
+        case 2:
+            worker = new Manager(id, name, dId);
+            break;
+        case 3:
+            worker = new Boss(id, name, dId);
+            break;
+        default:
+            break;
+        }
+        this->m_EmpArray[index++] = worker;
+    }
+    ifs.close();
+}
+```
+
+在构造函数中继续追加：
+```cpp
+    // 第三种情况，文件存在，且有数据记录
+    int num = this->get_EmpNum();
+    std::cout << "职工人数为：" << num << std::endl;
+    this->m_FileIsEmpty = false;
+    this->m_EmpNum = num;
+    this->m_EmpArray = new Worker *[this->m_EmpNum];
+    this->init_Emp();
+    std::cout << "职工初始化完毕！" << std::endl;
+    for (int i = 0; i < this->m_EmpNum; i++)
+    {
+        this->m_EmpArray[i]->showInfo();
+    }
+```
+![Image test](./pic/9_3_1_文件存在且不为空.png)
+
+# 10.显示职工所有信息
+功能描述：显示当前所有职工信息
+## 10.1 显示职工函数声明
+
+&emsp;&emsp;在`workerManager.h`中添加成员函数`void Show_Emp()`;
+```cpp
+    // 显示职工
+    void Show_Emp();
+```
+
+&emsp;&emsp;在`workerManager.cpp`中添加函数实现`void Show_Emp()`;
+```cpp
+void WorkerManager::Show_Emp()
+{
+    if (this->m_FileIsEmpty)
+    {
+        std::cout << "文件为空！" << std::endl;
+    }
+    else
+    {
+        for (int i = 0; i < this->m_EmpNum; i++)
+        {
+            // 调用多态调用程序接口
+            this->m_EmpArray[i]->showInfo();
+        }
+    }
+    this->clear_window();
+}
+```
+![Image test](./pic/10_1_1_%E6%98%BE%E7%A4%BA%E8%81%8C%E5%B7%A5%E4%BF%A1%E6%81%AF%E5%87%BD%E6%95%B0%E6%B5%8B%E8%AF%95.png)
+
+# 11.删除职工
+功能描述：按照职工编号进行删除职工操作
+# 11.1删除职工函数声明
+在`workerManager.h`中添加成员函数void Del_Emp();
+```cpp
+//删除职工
+void Del_Emp();
+```
+# 11.2职工是否存在函数声明
+
+&emsp;&emsp;很多功能都需要用到根据职工是否存在来进行操作，例如：删除职工、修改职工、查找职工，因此需要添加该函数，以便后续调用。在`workerManager.h`中添加该函数的声明`int IsExist(int id)`;
+
+
+```cpp
+int WorkerManager::IsExist(int id)
+{
+    int ret = -1;
+    for (int i = 0; i < this->m_EmpNum; i++)
+    {
+        if (this->m_EmpArray[i]->m_Id == i + 1)
+        {
+            // 找到该职工
+            ret = i;
+            break;
+        }
+    }
+    return ret;
+}
+```
+# 11.3删除职工函数
+在`workerManager.cpp`中添加函数实现`void Del_Emp()`;
+
+```cpp
+void WorkerManager::Del_Emp()
+{
+    if (!this->m_FileIsEmpty)
+    {
+        std::cout << "请输入要删除的职工的编号：" << std::endl;
+        int del_id = 0;
+        std::cin >> del_id;
+        int index = this->IsExist(del_id);
+        if (index != -1)
+        {
+            for (int i = index; i < this->m_EmpNum - 1; i++)
+            {
+                this->m_EmpArray[i] = this->m_EmpArray[i + 1];
+            }
+            this->m_EmpNum--;
+            this->save();
+            std::cout << "删除成功！" << std::endl;
+        }
+        else
+        {
+            std::cout << "改职工不存在，请重新确认！" << std::endl;
+        }
+    }
+    else
+    {
+        std::cout << "文件不存在或文件为空！" << std::endl;
+    }
+    this->clear_window();
+}
+```
+
+# 11.4删除职工测试
+![Image text](./pic/11_4_1_%E5%88%A0%E9%99%A4%E8%81%8C%E5%B7%A5%E6%B5%8B%E8%AF%95.png)
